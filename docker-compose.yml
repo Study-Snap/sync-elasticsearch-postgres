@@ -1,0 +1,64 @@
+version: "3.4"
+
+services:
+  db:
+    image: postgres:13.1
+    container_name: studysnap_pg
+    restart: on-failure
+    environment:
+      POSTGRES_DB: studysnap_db
+      POSTGRES_USER: studysnap
+      POSTGRES_PASSWORD: snapstudy
+    volumes:
+      - ./volumes/data/queries/:/docker-entrypoint-initdb.d/
+    networks:
+      - elk-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+    container_name: sem_elasticsearch
+    ports:
+      - 9200:9200
+    restart: on-failure
+    environment:
+      - "discovery.type=single-node"
+    networks:
+      - elk-network
+  logstash:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: sem_logstash
+    restart: on-failure
+    depends_on:
+      - db
+      - elasticsearch
+    environment:
+      DB_NAME: studysnap_db
+      TABLE_NAME: notes
+      DB_USER: studysnap
+      DB_PASS: snapstudy
+    volumes:
+      - ./volumes/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./volumes/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+      - ./volumes/pipelines/:/usr/share/logstash/pipeline/
+    networks:
+      - elk-network
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:7.9.3
+  #   container_name: sem_kibana
+  #   environment:
+  #     - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+  #     - "SERVER_NAME=127.0.0.1"
+  #   ports:
+  #     - 5601:5601
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - elk-network
+
+networks:
+  elk-network:
+    driver: bridge
+
+
+
