@@ -34,7 +34,6 @@ services:
       - elasticsearch
     environment:
       DB_NAME: studysnap_db
-      TABLE_NAME: notes
       DB_USER: studysnap
       DB_PASS: snapstudy
     volumes:
@@ -43,18 +42,6 @@ services:
       - ./volumes/pipelines/:/usr/share/logstash/pipeline/
     networks:
       - elk-network
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana:7.9.3
-  #   container_name: sem_kibana
-  #   environment:
-  #     - "ELASTICSEARCH_URL=http://elasticsearch:9200"
-  #     - "SERVER_NAME=127.0.0.1"
-  #   ports:
-  #     - 5601:5601
-  #   depends_on:
-  #     - elasticsearch
-  #   networks:
-  #     - elk-network
 
 networks:
   elk-network:
