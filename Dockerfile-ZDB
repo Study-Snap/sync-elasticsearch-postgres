@@ -1,8 +1,9 @@
-FROM postgres:10
+FROM postgres:13.1
 
 # Install dependencies
 RUN apt-get update
 RUN apt-get install -y git
+RUN apt-get install -y curl
 RUN apt-get install -y make
 RUN apt-get install -y gcc
 RUN apt-get install -y libcurl4-gnutls-dev
@@ -14,26 +15,30 @@ RUN apt-get install -y zlib1g-dev
 RUN apt-get install -y pkg-config
 RUN apt-get install -y libssl-dev
 RUN apt-get install -y libreadline-dev
-RUN apt-get install -y cargo
 RUN apt-get install -y build-essential
 RUN apt-get install -y strace
 RUN apt-get install -y ruby ruby-dev rubygems build-essential
-RUN apt-get install -y postgresql-server-dev-10
+RUN apt-get install -y postgresql-server-dev-13
 
 # Install rust tool chain and cargo-pgx
-# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
 RUN gem install --no-document fpm
-RUN cargo install cargo-pgx
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # clone zombodb from source
 RUN git clone https://github.com/zombodb/zombodb.git
 
 # Build zombodb from source
 WORKDIR zombodb
-RUN git checkout develop
-COPY volumes/build/Cargo.toml /zombodb/Cargo.toml
-RUN cargo pgx init
+RUN git checkout v3000.0.0-beta1
+# COPY volumes/build/Cargo.toml /zombodb/Cargo.toml
+RUN cargo install cargo-pgx
+RUN cargo update
+RUN cargo pgx init --pg13=`which pg_config`
 RUN cargo pgx install
 
 # Copy SQL queries 
 COPY ./volumes/data/queries/install_zombodb.sql /docker-entrypoint-initdb.d
+
+# Insert some test data
+COPY ./volumes/data/queries/create_notes_zdb.sql /docker-entrypoint-initdb.d

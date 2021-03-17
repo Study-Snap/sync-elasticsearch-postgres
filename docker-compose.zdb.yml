@@ -1,0 +1,34 @@
+version: "3.7"
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile-ZDB
+    container_name: studysnap_pgzdb
+    restart: on-failure
+    environment:
+      POSTGRES_DB: studysnap_db
+      POSTGRES_USER: studysnap
+      POSTGRES_PASSWORD: snapstudy
+    volumes:
+      - ./volumes/data/queries/zdb:/docker-entrypoint-initdb.d
+    networks:
+      - zdb-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+    container_name: zdb_elasticsearch
+    ports:
+      - 9200:9200
+    restart: on-failure
+    environment:
+      - "discovery.type=single-node"
+    networks:
+      - zdb-network
+
+networks:
+  zdb-network:
+    driver: bridge
+
+
+

@@ -10,12 +10,12 @@ services:
       POSTGRES_USER: studysnap
       POSTGRES_PASSWORD: snapstudy
     volumes:
-      - ./volumes/data/queries/:/docker-entrypoint-initdb.d/
+      - ./volumes/data/queries/basic:/docker-entrypoint-initdb.d
     networks:
       - elk-network
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
-    container_name: sem_elasticsearch
+    container_name: ss_elasticsearch
     ports:
       - 9200:9200
     restart: on-failure
